@@ -1,20 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Redirecting</title>
-        <script>
-            const params = new URLSearchParams(window.location.search);
-            const token = params.get('token');
-            //send token to zapier webhook
-            fetch(`https://hooks.zapier.com/hooks/catch/20562125/uctifvr/?token=${encodeURIComponent(token)}`).catch(err => console.error('Webhook error:', err));
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #0066cc;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        a { color: #0066cc; }
+    </style>
+    <script>
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var token = params.get('token') || '';
+            var webhookURL = 'https://hooks.zapier.com/hooks/catch/20562125/uctifvr/?token=' + encodeURIComponent(token);
 
-            //Redirecting to final page
-            window.location.href="https://sagesure.com/ting/";
+            // Build redirect URL with token and UTM tags
+            var redirectURL = 'https://sagesure.com/ting/'
+                + '?token=' + encodeURIComponent(token)
+                + '&utm_source=email'
+                + '&utm_medium=email'
+                + '&utm_campaign=rmppilot'
+                + '&utm_content=optin_cta'
+                + '&utm_term=frr';
 
-        </script>
-    </head>
-    <body>
-        <p>Redirecting... If you are not redirected automatically, <a href="https://sagesure.com/ting/">click here</a>.</p>
-    </body>
+            // Safety net: redirect no matter what after 3 seconds
+            var safetyTimeout = setTimeout(function() {
+                window.location.href = redirectURL;
+            }, 3000);
+
+            function doRedirect() {
+                clearTimeout(safetyTimeout);
+                window.location.href = redirectURL;
+            }
+
+            // STRATEGY 1: sendBeacon (best — survives page navigation, works on all modern browsers)
+            if (navigator.sendBeacon) {
+                var sent = navigator.sendBeacon(webhookURL);
+                if (sent) {
+                    doRedirect();
+                    return;
+                }
+            }
+
+            // STRATEGY 2: fetch with keepalive (survives navigation, iOS 13+)
+            if (window.fetch) {
+                fetch(webhookURL, { method: 'GET', keepalive: true, mode: 'no-cors' })
+                    .finally(function() { doRedirect(); });
+                return;
+            }
+
+            // STRATEGY 3: Image pixel fallback (works everywhere, even ancient browsers)
+            var img = new Image();
+            img.onload = img.onerror = function() { doRedirect(); };
+            img.src = webhookURL;
+        })();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <p>Redirecting you now...</p>
+        <p><small>If you are not redirected automatically, <a id="fallback-link" href="https://sagesure.com/ting/">click here</a>.</small></p>
+    </div>
+    <script>
+        // Update fallback link to include token
+        var params = new URLSearchParams(window.location.search);
+        var token = params.get('token') || '';
+        var link = document.getElementById('fallback-link');
+        if (link && token) {
+            link.href = 'https://sagesure.com/ting/?token=' + encodeURIComponent(token);
+        }
+    </script>
+</body>
 </html>
