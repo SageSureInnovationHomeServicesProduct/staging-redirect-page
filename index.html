@@ -37,16 +37,15 @@
         (function() {
             var params = new URLSearchParams(window.location.search);
             var token = params.get('token') || '';
-            var webhookURL = 'https://hooks.zapier.com/hooks/catch/20562125/uctifvr/?token=' + encodeURIComponent(token);
+            var webhookURL = 'https://hooks.zapier.com/hooks/catch/20562125/uzjcqbc/?token=' + encodeURIComponent(token);
 
             // Build redirect URL with token and UTM tags
-            var redirectURL = 'https://sagesure.com/ting/'
+            var redirectURL = 'https://sagesure.com/roofmarketplace-confirmation/'
                 + '?token=' + encodeURIComponent(token)
-                + '&utm_source=email'
+                + '&utm_source=email_optin_cta'
                 + '&utm_medium=email'
                 + '&utm_campaign=rmppilot'
-                + '&utm_content=optin_cta'
-                + '&utm_term=frr';
+                + '&utm_term=frr_only';
 
             // Safety net: redirect no matter what after 3 seconds
             var safetyTimeout = setTimeout(function() {
@@ -62,7 +61,7 @@
             if (navigator.sendBeacon) {
                 var sent = navigator.sendBeacon(webhookURL);
                 if (sent) {
-                    doRedirect();
+                    doRedirect(); // Redirect immediately, beacon delivers in background
                     return;
                 }
             }
@@ -74,7 +73,7 @@
                 return;
             }
 
-            // STRATEGY 3: Image pixel fallback (works everywhere, even ancient browsers)
+            // STRATEGY 3: Image pixel fallback (works everywhere, even ancient browsers and strict in-app webviews)
             var img = new Image();
             img.onload = img.onerror = function() { doRedirect(); };
             img.src = webhookURL;
@@ -85,7 +84,7 @@
     <div class="container">
         <div class="spinner"></div>
         <p>Redirecting you now...</p>
-        <p><small>If you are not redirected automatically, <a id="fallback-link" href="https://sagesure.com/ting/">click here</a>.</small></p>
+        <p><small>If you are not redirected automatically, <a id="fallback-link" href="https://sagesure.com/roofmarketplace-confirmation/">click here</a>.</small></p>
     </div>
     <script>
         // Update fallback link to include token
@@ -93,7 +92,7 @@
         var token = params.get('token') || '';
         var link = document.getElementById('fallback-link');
         if (link && token) {
-            link.href = 'https://sagesure.com/ting/?token=' + encodeURIComponent(token);
+            link.href = 'https://sagesure.com/roofmarketplace-confirmation/?token=' + encodeURIComponent(token);
         }
     </script>
 </body>
